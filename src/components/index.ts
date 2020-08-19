@@ -1,0 +1,1 @@
+export { AnimationBar } from './AnimationBar';
