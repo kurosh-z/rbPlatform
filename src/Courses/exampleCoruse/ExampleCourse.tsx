@@ -17,6 +17,7 @@ export const ExampleCourse: React.FC = () => {
       courseRef.current = new Canvas({
         canvas: canv.current,
         canvState: _canvState,
+        palette: theme.palette,
       });
     }
   }, []);

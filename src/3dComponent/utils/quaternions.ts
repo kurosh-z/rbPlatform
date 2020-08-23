@@ -2,6 +2,7 @@ import { Vector3, Quaternion } from 'babylonjs';
 import { J, K } from './constants';
 
 export const rotationQuaternionJToV2 = (v2: Vector3) => {
+  if (v2.length() === 0) return Quaternion.Identity();
   const _v2 = v2.clone().normalize();
   let angle = 0;
   let axes = Vector3.Cross(J, _v2);

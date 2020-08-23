@@ -1,21 +1,21 @@
 import * as BABYLON from 'babylonjs';
-import { Vector3, Scene } from 'babylonjs';
+import { Vector3, Scene, Color4, Color3 } from 'babylonjs';
 import { rotationQuaternionJToV2, J } from './utils';
-import chroma from 'chroma-js';
+import { hex2Color3 } from './utils';
 
 type LineOption = {
-  color?: string;
-  thickness?: number;
-  fatLine?: boolean;
+  color?: BABYLON.Color3;
+  alpha?: number;
+  useVertexAlpha?: boolean;
 };
 export class Line {
-  _color: string;
+  private _color: BABYLON.Color3;
+  private _alpha: number;
+  private _p1: Vector3;
+  private _p2: Vector3;
+  private _mesh: BABYLON.LinesMesh;
+  useVertexAlpha: boolean;
   scene: Scene;
-  _p1: Vector3;
-  _p2: Vector3;
-  thickness: number;
-  fatLine: boolean;
-  _mesh: BABYLON.Mesh;
 
   constructor({
     scene,
@@ -28,13 +28,13 @@ export class Line {
     scene: Scene;
     options?: LineOption;
   }) {
-    const { color = '#4e5052', thickness = 1.5, fatLine = true } =
+    const { color = hex2Color3('#4e5052'), alpha = 1, useVertexAlpha = false } =
       options instanceof Object ? options : {};
     this._p1 = p1;
     this._p2 = p2;
     this._color = color;
-    this.thickness = thickness;
-    this.fatLine = fatLine;
+    this._alpha = alpha === undefined ? 1 : alpha;
+    this.useVertexAlpha = useVertexAlpha;
     this.scene = scene;
     this._mesh = this._createMesh();
   }
@@ -50,41 +50,58 @@ export class Line {
     const v2 = this._p2.clone().add(this._p1.clone().scale(-1));
     const quat = rotationQuaternionJToV2(v2);
     this._mesh.rotationQuaternion = quat;
+    this._mesh.scaling.y = v2.length();
+    this._mesh.position.set(this._p1.x, this._p1.y, this._p1.z);
   }
   set p2(p2: Vector3) {
     this._p2 = p2;
     const v2 = this._p2.clone().add(this._p1.clone().scale(-1));
     const quat = rotationQuaternionJToV2(v2);
     this._mesh.rotationQuaternion = quat;
+    this._mesh.scaling.y = v2.length();
+    this._mesh.position.set(this._p1.x, this._p1.y, this._p1.z);
   }
-  set color(color: string) {
+  updatePoints(p1: Vector3, p2: Vector3) {
+    this._p1 = p1;
+    this._p2 = p2;
+    const v2 = this._p2.clone().add(this._p1.clone().scale(-1));
+    const quat = rotationQuaternionJToV2(v2);
+    this._mesh.rotationQuaternion = quat;
+    this._mesh.scaling.y = v2.length();
+    this._mesh.position.set(this._p1.x, this._p1.y, this._p1.z);
+  }
+  set color(color: Color3) {
     this._color = color;
-    if (this.fatLine) {
-      this._mesh.edgesColor = new BABYLON.Color4(...chroma(this._color).gl());
-    }
   }
+  get alpha() {
+    return this._alpha;
+  }
+  set alpha(alpha: number) {
+    this._alpha = alpha;
+    this._mesh.alpha = alpha;
+  }
+
   _createMesh() {
     // Creation of a line with lengh 1 along J axes
-    const lineMesh = BABYLON.Mesh.CreateLines(
+    const lineMesh = BABYLON.MeshBuilder.CreateLines(
       'lineMesh',
-      [Vector3.Zero(), J],
+      {
+        points: [Vector3.Zero(), J],
+        useVertexAlpha: this.useVertexAlpha,
+      },
       this.scene
     );
 
-    // EdgesRendering on lines to make it  fat
-    if (this.fatLine) {
-      lineMesh.enableEdgesRendering();
-      lineMesh.edgesWidth = this.thickness;
-      lineMesh.edgesColor = new BABYLON.Color4(...chroma(this._color).gl());
-    }
+    lineMesh.color = this._color;
+    lineMesh.alpha = this._alpha;
+
     const dir = this._p2.clone().add(this._p1.clone().scale(-1));
     const mag = dir.length();
     lineMesh.scaling.y = mag;
-    // const line = new TransformNode('line');
-    // lineMesh.parent = line;
     const quat = rotationQuaternionJToV2(dir);
     lineMesh.rotationQuaternion = quat;
     lineMesh.position.set(this._p1.x, this._p1.y, this._p1.z);
+
     return lineMesh;
   }
 }

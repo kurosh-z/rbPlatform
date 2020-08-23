@@ -15,9 +15,8 @@ export const linspace = ({
     throw new Error('stop cannot be smaller than start!');
   }
   let _step: number;
-  console.log(isNumber(num));
   if (isNumber(num)) {
-    _step = Math.abs(stop - start) / num;
+    _step = Math.abs(stop - start) / (num as number);
   } else {
     _step = step;
   }

@@ -1,14 +1,13 @@
 import * as BABYLON from 'babylonjs';
 import {
   Vector3,
-  Quaternion,
   TransformNode,
   Color3,
   Scene,
   Nullable,
   Animation,
 } from 'babylonjs';
-import { rotationQuaternionJToV2, J } from './utils';
+import { rotationQuaternionJToV2, hex2Color3 } from './utils';
 
 export class Vector {
   origin = new Vector3(0, 0, 0);
@@ -24,13 +23,13 @@ export class Vector {
 
   constructor({
     vector,
-    color,
+    color = hex2Color3('#2368e8'),
     origin,
     visiblity = 1,
     scene,
   }: {
     vector: Vector3;
-    color: Color3;
+    color?: Color3;
     origin?: Vector3;
     visiblity?: number;
     scene: BABYLON.Scene;
