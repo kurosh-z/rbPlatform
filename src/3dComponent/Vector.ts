@@ -8,10 +8,7 @@ import {
   Nullable,
   Animation,
 } from 'babylonjs';
-
-export const I = new Vector3(1, 0, 0);
-export const J = new Vector3(0, 1, 0);
-export const K = new Vector3(0, 0, 1);
+import { rotationQuaternionJToV2, J } from './utils';
 
 export class Vector {
   origin = new Vector3(0, 0, 0);
@@ -45,6 +42,7 @@ export class Vector {
     if (origin) {
       this.origin = origin;
     }
+    this._buildMeshes();
   }
 
   calculatShaftHeight() {
@@ -53,22 +51,23 @@ export class Vector {
     return mag;
   }
   _calculateRotationQuaternion() {
-    const _vec = this._vec.clone().normalize();
-    let angle = 0;
-    let axes = Vector3.Cross(J, _vec);
-    if (axes.cross(J).length() < 0.001) {
-      angle = axes.y < 0 ? 0 : Math.PI;
-      axes = K;
-    } else {
-      const dot = Vector3.Dot(J, _vec);
-      angle = -Math.abs(dot) >= 0.001 ? Math.acos(dot) : Math.acos(dot);
-    }
-    const quat = Quaternion.RotationAxis(axes, angle);
-    return quat;
+    const quat1 = rotationQuaternionJToV2(this._vec);
+    return quat1;
+    // const _vec = this._vec.clone().normalize();
+    // let angle = 0;
+    // let axes = Vector3.Cross(J, _vec);
+    // if (axes.cross(J).length() < 0.001) {
+    //   angle = axes.y < 0 ? 0 : Math.PI;
+    //   axes = K;
+    // } else {
+    //   const dot = Vector3.Dot(J, _vec);
+    //   angle = -Math.abs(dot) >= 0.001 ? Math.acos(dot) : Math.acos(dot);
+    // }
+    // const quat = Quaternion.RotationAxis(axes, angle);
+    // console.log(quat, quat1);
+    // return quat;
   }
-  animate(to: Vector3) {
-    this.scene.registerBeforeRender(() => {});
-  }
+
   set vec(to: Vector3) {
     this._updateVec(to);
   }
@@ -78,11 +77,6 @@ export class Vector {
   _updateVec(vec: Vector3) {
     this._vec = vec;
     const quat = this._calculateRotationQuaternion();
-    if (this._arrow === null) {
-      throw new Error(
-        'you should build meshes using buildMeshes() method, before updating the vector!'
-      );
-    }
     this._arrow.rotationQuaternion = quat;
     const children = this._arrow.getChildMeshes();
     const shaft = children[0].name === 'vec_shaft' ? children[0] : children[1];
@@ -92,8 +86,8 @@ export class Vector {
     shaft.position.set(0, h / 2, 0);
     head.position.set(0, h, 0);
   }
-  buildMeshes() {
-    const arrow = new TransformNode('vector', this.scene);
+  _buildMeshes() {
+    const arrow = new TransformNode('vector');
     const h = this.calculatShaftHeight();
     const shaft = BABYLON.MeshBuilder.CreateCylinder(
       'vec_shaft',
@@ -115,6 +109,7 @@ export class Vector {
     mat.diffuseColor = BABYLON.Color3.Blue();
     shaft.material = mat;
     head.material = mat;
+
     //  this._calculateRotationMatrix(J, this._vec
     shaft.parent = arrow;
     head.parent = arrow;
