@@ -51,6 +51,12 @@ export class Grids {
     this.h_lines = h_lines;
     this.v_lines = v_lines;
   }
+  get h_length() {
+    return this._h_lenght;
+  }
+  get v_length() {
+    return this._v_lenght;
+  }
   set h_length(length: number) {
     this._h_lenght = length;
     let idx = 0;
@@ -71,6 +77,7 @@ export class Grids {
       idx++;
     }
   }
+
   createMeshes() {
     const h_lines: Line[] = [];
     for (let tick of this.v_ticks) {
@@ -101,5 +108,20 @@ export class Grids {
     }
 
     return { h_lines, v_lines };
+  }
+  dispose() {
+    for (const line of this.v_lines) {
+      line.dispose();
+    }
+  }
+  removeFromScene() {
+    for (const line of this.v_lines) {
+      line.removeFromScene();
+    }
+  }
+  add2Scene() {
+    for (const line of this.v_lines) {
+      line.add2Scene();
+    }
   }
 }

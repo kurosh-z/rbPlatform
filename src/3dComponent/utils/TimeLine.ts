@@ -40,13 +40,13 @@ type EasingMode = 'easeInOut' | 'easeIn' | 'easeOut';
 export class TimeLine {
   fps: number;
   _totalTime = 0;
-  _lastPos = 0;
+  _labels: { [k: string]: number } = {};
   animationGroup: AnimationGroup;
   constructor({
-    fps,
+    fps = 60,
     animationGroup,
   }: {
-    fps: number;
+    fps?: number;
     animationGroup: AnimationGroup;
   }) {
     this.animationGroup = animationGroup;
@@ -86,9 +86,16 @@ export class TimeLine {
     }
   }
 
-  pos2frame(pos: number) {
+  time2frame(pos: number) {
     return this.fps * pos;
   }
+  getAbsoluteTime(pos: number, label: string) {
+    return label ? this._labels[label] + pos : this._totalTime + pos;
+  }
+  getAbsoluteFrame(pos: number, label: string) {
+    this.time2frame(this.getAbsoluteTime(pos, label));
+  }
+
   add<T>({
     target,
     from,
@@ -99,6 +106,8 @@ export class TimeLine {
     easingMode = 'easeInOut',
     name = 'animation',
     loop = false,
+    origin,
+    label,
   }: {
     target: T;
     from?: {
@@ -113,42 +122,75 @@ export class TimeLine {
     easingMode?: 'easeInOut' | 'easeIn' | 'easeOut';
     name?: string;
     loop?: boolean;
+    label?: string;
+    origin?: string;
   }) {
+    // setting the label
+    if (label) {
+      this._labels[label] = this._totalTime;
+      if (target === undefined) return this;
+    }
+
+    // prepare easing function
     this.setEasingMode(easingFunc, easingMode);
 
-    for (const anim_key in to) {
+    // calculate begin and end time of animation
+    let beginTime: number;
+    if (origin) {
+      if (this._labels[origin] === undefined) {
+        throw new Error(`origin should be a valid label!`);
+      }
+      beginTime = this._labels[origin] + pos;
+    } else {
+      beginTime = this._totalTime + pos;
+    }
+
+    // const beginTime = this._totalTime + _pos;
+    const endTime = beginTime + duration;
+
+    // create animations for each property
+    for (const target_prop in to) {
       const anim = new BABYLON.Animation(
         name,
-        anim_key,
+        target_prop,
         this.fps,
-        this.getAnimationType(to[anim_key]),
+        this.getAnimationType(to[target_prop]),
         loop
           ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
           : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
       );
 
+      if (beginTime < 0) {
+        throw new Error(
+          `beginTime of the animation cannot be negative! it happens if totalTime + pos < 0`
+        );
+      }
+
       const keys = [
         {
-          frame: this.pos2frame(pos),
+          frame: this.time2frame(beginTime),
           value:
             from !== undefined
-              ? from[anim_key] !== undefined
-                ? from[anim_key]
-                : target[anim_key]
-              : target[anim_key],
+              ? from[target_prop] !== undefined
+                ? from[target_prop]
+                : target[target_prop]
+              : target[target_prop],
         },
         {
-          frame: this.pos2frame(pos + duration),
-          value: to[anim_key],
+          frame: this.time2frame(endTime),
+          value: to[target_prop],
         },
       ];
+
       anim.setKeys(keys);
       anim.setEasingFunction(easingFunc);
       this.animationGroup.addTargetedAnimation(anim, target);
-      if (duration + pos > this._totalTime) {
-        this._totalTime = duration + pos;
-        this.animationGroup.normalize(0, this.pos2frame(this._totalTime));
-      }
     }
+    // if pos<0 endTime can be smaller than total time , in this case we dont have to normalize otehrwise:
+    if (endTime > this._totalTime) {
+      this._totalTime = endTime;
+      this.animationGroup.normalize(0, this.time2frame(this._totalTime));
+    }
+    return this;
   }
 }

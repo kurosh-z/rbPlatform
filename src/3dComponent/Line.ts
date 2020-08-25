@@ -1,5 +1,5 @@
 import * as BABYLON from 'babylonjs';
-import { Vector3, Scene, Color4, Color3 } from 'babylonjs';
+import { Vector3, Scene, Color3 } from 'babylonjs';
 import { rotationQuaternionJToV2, J } from './utils';
 import { hex2Color3 } from './utils';
 
@@ -103,5 +103,14 @@ export class Line {
     lineMesh.position.set(this._p1.x, this._p1.y, this._p1.z);
 
     return lineMesh;
+  }
+  dispose() {
+    this._mesh.dispose();
+  }
+  removeFromScene() {
+    this.scene.removeMesh(this._mesh);
+  }
+  add2Scene() {
+    this.scene.addMesh(this._mesh);
   }
 }

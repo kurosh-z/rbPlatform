@@ -1,3 +1,3 @@
 export { Line } from './Line';
-export { Vector } from './Vector';
+export { Arrow } from './Arrow';
 export { Grids } from './Grids';
