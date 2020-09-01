@@ -4,13 +4,13 @@
 const entry = {
   app: './src/index',
   // latex_parser: './src/math-components/parser/index',
-};
+}
 /*********************************
  * Resolve
  *********************************/
 const resolve = {
   extensions: ['.ts', '.tsx', '.js'],
-};
+}
 /*********************************
  * Module
  *********************************/
@@ -59,7 +59,7 @@ const _module = {
       use: ['style-loader', 'css-loader'],
     },
   ],
-};
+}
 /*********************************
  * Optimization
  *********************************/
@@ -74,7 +74,7 @@ const optimization = {
     },
     chunks: 'all',
   },
-};
+}
 /*********************************
  * Exports
  *********************************/
@@ -84,4 +84,4 @@ module.exports = {
   resolve: resolve,
   module: _module,
   optimization: optimization,
-};
+}

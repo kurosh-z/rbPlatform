@@ -1,102 +1,113 @@
-import * as React from 'react';
-import { useRef, useCallback, useState, useEffect, useMemo } from 'react';
-import { Observer, AnimationGroup, Scene } from 'babylonjs';
-import { css as emoCSS } from '@emotion/core';
-import { useTheme } from 'emotion-theming';
-import { Theme } from '../theme/types';
-import { CanvasState } from '../appState';
-import { useNotify } from '../utils';
+import * as React from 'react'
+import { useRef, useCallback, useState, useEffect, useMemo } from 'react'
+import { Observer, Scene } from 'babylonjs'
+import { css as emoCSS } from '@emotion/core'
+import { useTheme } from 'emotion-theming'
+import { Theme } from '../theme/types'
+import { useAnimationStore, useCanvasStore } from '../appState'
+import shallow from 'zustand/shallow'
 //@ts-ignore
-import play_icon from '../assets/icons/icon_play.svg';
+import play_icon from '../assets/icons/icon_play.svg'
 //@ts-ignore
-import pause_icon from '../assets/icons/icon_pause.svg';
+import pause_icon from '../assets/icons/icon_pause.svg'
 
-export const AnimationBar: React.FC<{ canvState: CanvasState }> = ({
-  canvState,
-}) => {
-  const [currentGroup, setCurrentGroup] = useState<AnimationGroup>(null);
-  const [playing, setPlaying] = useState<boolean>(null);
-  const [playRequest, setPlayRequest] = useState(false);
-  const [sliderPos, setSliderPos] = useState('0');
-  const [scene, sceneRef] = useNotify<Scene>();
+const selector = state => ({
+  currentGroup: state.currentGroup,
+  setCurrentGroup: state.setCurrentGroup,
+  playing: state.playing,
+  setPlaying: state.setPlaying,
+  playRequest: state.playRequest,
+  setPlayRequest: state.playRequest,
+  groupIndex: state.groupIndex,
+})
+export const AnimationBar: React.FC = () => {
+  const {
+    currentGroup,
+    setCurrentGroup,
+    playing,
+    setPlaying,
+    playRequest,
+    setPlayRequest,
+    groupIndex,
+  } = useAnimationStore(selector, shallow)
+  const currentScene = useCanvasStore(state => state.currentScene)
+  const [sliderPos, setSliderPos] = useState('0')
+  const sliderSyncObserver = useRef<Observer<Scene> | null>(null)
 
   useEffect(() => {
-    canvState.onSceneRegisterCallbacks.push(sceneRef);
-  }, []);
-  useEffect(() => {
-    if (scene) {
-      setCurrentGroup(scene.animationGroups[0]);
+    if (currentScene) {
+      setCurrentGroup(currentScene.animationGroups[groupIndex])
     }
-  }, [scene]);
-
-  const sliderSyncObserver = useRef<Observer<Scene>>(null);
+  }, [currentScene, groupIndex])
 
   const pauseCallback = useCallback(() => {
-    if (!currentGroup) return;
-    currentGroup.pause();
-    setPlaying(() => false);
-  }, [currentGroup]);
+    if (!currentGroup) return
+    currentGroup.pause()
+    setPlaying(false)
+  }, [currentGroup])
 
   const playCallback = useCallback(() => {
-    if (!currentGroup) return;
-    currentGroup.play();
-    setPlaying(() => true);
-  }, [currentGroup]);
+    if (!currentGroup) return
+    currentGroup.play()
+    setPlaying(true)
+  }, [currentGroup])
 
   useEffect(() => {
     const getCurrentPosition = () => {
       if (!currentGroup) {
-        return '0';
+        return '0'
       }
-      let targetedAnimations = currentGroup.targetedAnimations;
+      let targetedAnimations = currentGroup.targetedAnimations
       if (targetedAnimations.length > 0) {
         let runtimeAnimations =
-          currentGroup.targetedAnimations[0].animation.runtimeAnimations;
+          currentGroup.targetedAnimations[0].animation.runtimeAnimations
         if (runtimeAnimations.length > 0) {
-          const currframe = runtimeAnimations[0].currentFrame;
+          const currframe = runtimeAnimations[0].currentFrame
           //prevent animation to jum to the first frame at thte end!
           if (Math.abs(currframe - currentGroup.to) < 1) {
-            setPlaying(false);
-            currentGroup.pause();
-            return currentGroup.to.toString();
+            setPlaying(false)
+            currentGroup.pause()
+            return currentGroup.to.toString()
           }
-          return currframe.toString();
+          return currframe.toString()
         }
       }
-      return '0';
-    };
-    if (scene) {
-      scene.onBeforeRenderObservable.remove(sliderSyncObserver.current);
-      sliderSyncObserver.current = scene.onBeforeRenderObservable.add(() => {
-        setSliderPos(() => getCurrentPosition());
-      });
+      return '0'
     }
-  }, [scene, currentGroup]);
+    if (currentScene) {
+      currentScene.onBeforeRenderObservable.remove(sliderSyncObserver.current)
+      sliderSyncObserver.current = currentScene.onBeforeRenderObservable.add(
+        () => {
+          setSliderPos(() => getCurrentPosition())
+        },
+      )
+    }
+  }, [currentScene, currentGroup])
 
   const sliderInput = useCallback(
     (evt: React.FormEvent<HTMLInputElement>) => {
       if (!currentGroup) {
-        return;
+        return
       }
 
-      let value = parseFloat((evt.target as HTMLInputElement).value);
+      let value = parseFloat((evt.target as HTMLInputElement).value)
 
       if (!currentGroup.isPlaying) {
-        currentGroup.play();
-        currentGroup.goToFrame(value);
-        currentGroup.pause();
+        currentGroup.play()
+        currentGroup.goToFrame(value)
+        currentGroup.pause()
       } else {
-        currentGroup.pause();
-        currentGroup.goToFrame(value);
+        currentGroup.pause()
+        currentGroup.goToFrame(value)
         // we don't wanna play until mouse is up again so we request play on mouseUp event!
-        setPlayRequest(() => true);
+        setPlayRequest(true)
       }
-      setSliderPos(() => value.toString());
+      setSliderPos(() => value.toString())
     },
-    [currentGroup]
-  );
+    [currentGroup],
+  )
 
-  const theme = useTheme<Theme>();
+  const theme = useTheme<Theme>()
   const animBar = useMemo(
     () =>
       emoCSS({
@@ -148,17 +159,17 @@ export const AnimationBar: React.FC<{ canvState: CanvasState }> = ({
           height: 2,
         },
       }),
-    [theme]
-  );
+    [theme],
+  )
 
   return (
-    <div className='animationBar' css={animBar}>
-      <button className='animationBar__playBtn'>
+    <div className="animationBar" css={animBar}>
+      <button className="animationBar__playBtn">
         {!currentGroup && (
           <img
             src={play_icon}
             onClick={() => {
-              console.log('empty');
+              console.log('empty')
             }}
           />
         )}
@@ -170,21 +181,21 @@ export const AnimationBar: React.FC<{ canvState: CanvasState }> = ({
         )}
       </button>
       <input
-        className='animationBar__slider'
-        type='range'
+        className="animationBar__slider"
+        type="range"
         min={currentGroup ? currentGroup.from : 0}
         max={currentGroup ? currentGroup.to : 100}
-        step='any'
+        step="any"
         value={sliderPos}
         onChange={() => {}}
-        onInput={(evt) => sliderInput(evt)}
+        onInput={evt => sliderInput(evt)}
         onMouseUp={() => {
           if (playRequest && currentGroup) {
-            currentGroup.play();
-            setPlayRequest(false);
+            currentGroup.play()
+            setPlayRequest(false)
           }
         }}
       />
     </div>
-  );
-};
+  )
+}

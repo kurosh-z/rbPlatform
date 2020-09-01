@@ -1,8 +1,8 @@
-import React from 'react';
-import { ExampleCourse } from './Courses';
+import React from 'react'
+import { ExampleCourse } from './Courses'
 
-function App() {
-  return <ExampleCourse />;
+const App: React.FC = () => {
+  return <ExampleCourse />
 }
 
-export default App;
+export default App

@@ -1,32 +1,43 @@
-import React from 'react';
-import { Observable, Scene } from 'babylonjs';
+import { Scene } from 'babylonjs'
+import { immer } from './zustandImmer'
+import create from 'zustand'
 
-export class CanvasState {
-  currentScene: Scene;
-  isDebugLayerEnabled = false;
-  onSceneRegistered = new Observable<{ scene: Scene }>();
-  onSceneRegisterCallbacks: React.MutableRefObject<(arg?: any) => void>[] = [];
-  constructor() {
-    this.onSceneRegistered.add(({ scene }) => {
-      this.currentScene = scene;
-      const cbList = this.onSceneRegisterCallbacks;
-      if (cbList.length) {
-        for (const cb of cbList) {
-          cb.current(scene);
-        }
-      }
-    });
-  }
-  public showDebugLayer() {
-    this.isDebugLayerEnabled = true;
-    if (this.currentScene) {
-      this.currentScene.debugLayer.show();
-    }
-  }
-  public hideDebugLayer() {
-    this.isDebugLayerEnabled = false;
-    if (this.currentScene) {
-      this.currentScene.debugLayer.hide();
-    }
-  }
+interface ICanvasPureStates {
+  currentScene: Scene | null
+  isDebugLayerEnabled: boolean
 }
+interface ICanvasMiddlewares {
+  setCurrentScene: (scene: Scene) => void
+  showDebugLayer: () => void
+  hideDebugLayer: () => void
+}
+
+type ICanvasState = ICanvasPureStates & ICanvasMiddlewares
+
+export const useCanvasStore = create<ICanvasState>(
+  immer(set => ({
+    currentScene: null,
+    isDebugLayerEnabled: false,
+    setCurrentScene: (scene: Scene) => {
+      set(state => {
+        state.currentScene = scene
+      })
+    },
+    showDebugLayer: () => {
+      set(state => {
+        state.isDebugLayerEnabled = true
+        if (state.currentScene) {
+          state.currentScene.debugLayer.show()
+        }
+      })
+    },
+    hideDebugLayer: () => {
+      set(state => {
+        state.isDebugLayerEnabled = false
+        if (state.currentScene) {
+          state.currentScene.debugLayer.hide()
+        }
+      })
+    },
+  })),
+)
