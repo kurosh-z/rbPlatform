@@ -3,7 +3,7 @@ import { Vector3, AnimationGroup } from 'babylonjs'
 import { scaleLinear, ScaleLinear } from 'd3-scale'
 
 import { useCanvasStore, useSCPopUPStore } from '../../appState'
-import { Arrow, Grids, PulsingPoint } from '../../3dComponent'
+import { Arrow, Grids, PulsingPoint, Axes } from '../../3dComponent'
 import { isEvenNum, hex2Color4, TimeLine } from '../../3dComponent/utils'
 import { Palette } from '../../theme/types'
 
@@ -164,14 +164,26 @@ export class Canvas {
   }
 
   createArrowAnimation() {
-    const vec = new Arrow({
-      vector: this.cVector3(5, 0, 0),
+    const x_axes = new Axes({
       scene: this._scene,
+      type: 'x',
+      cScale: this.cScale,
+    })
+    const y_axes = new Axes({
+      scene: this._scene,
+      type: 'y',
+      cScale: this.cScale,
+    })
+
+    const vec = new Arrow({
+      vector: this.cVector3(5, 3, 0),
+      scene: this._scene,
+      config: { pointForSmallVectors: false },
     })
 
     this.timeline.add({
       target: vec,
-      to: { vec: this.cVector3(-2, 0, 0) },
+      to: { vec: this.cVector3(-2, 1, 0) },
       duration: 1,
       pos: 0,
       name: 'vec_animation',

@@ -1,13 +1,12 @@
 import { AnimationGroup } from 'babylonjs'
 import create from 'zustand'
-
 import { immer } from './zustandImmer'
 
 interface AnimationPureState {
   currentGroup: AnimationGroup | null
   groupIndex: number
   playing: boolean
-  playRequest: boolean
+  playRequested: boolean
 }
 interface AnimationMiddlewares {
   setCurrentGroup: (group: AnimationPureState['currentGroup']) => void
@@ -15,11 +14,11 @@ interface AnimationMiddlewares {
   setPlaying: (play: boolean) => void
   setPlayRequest: (request: boolean) => void
 }
-type AnimationState = AnimationPureState & AnimationMiddlewares
+export type AnimationState = AnimationPureState & AnimationMiddlewares
 
 const initialAnimationState: AnimationPureState = {
   playing: false,
-  playRequest: false,
+  playRequested: false,
   currentGroup: null,
   groupIndex: 0,
 }
@@ -39,7 +38,7 @@ export const useAnimationStore = create(
     },
     setPlayRequest: request => {
       set(state => {
-        state.playRequest = request
+        state.playRequested = request
       })
     },
     setPlaying: play => {

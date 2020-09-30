@@ -1,7 +1,7 @@
-const path = require('path');
-const { merge } = require('webpack-merge');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const common = require('./webpack.common');
+const path = require('path')
+const { merge } = require('webpack-merge')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const common = require('./webpack.common')
 
 /*********************************
  * Plugins
@@ -10,7 +10,7 @@ const plugins = [
   new HtmlWebpackPlugin({
     template: './public/index.html',
   }),
-];
+]
 /*********************************
  * Output
  *********************************/
@@ -21,16 +21,16 @@ const output = {
   publicPath: '/',
 
   //   publicPath: path.resolve(__dirname, 'dist'),
-};
+}
 /*********************************
  * devServer
  *********************************/
 const devServer = {
   contentBase: path.join(__dirname, 'dist'),
   // compress: true,
-  port: 9090,
+  port: 9080,
   historyApiFallback: true,
-};
+}
 
 module.exports = merge(common, {
   mode: 'development',
@@ -39,4 +39,4 @@ module.exports = merge(common, {
 
   plugins: plugins,
   devServer: devServer,
-});
+})

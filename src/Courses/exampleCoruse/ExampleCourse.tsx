@@ -1,17 +1,22 @@
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useLayoutEffect, useRef, useCallback } from 'react'
 import { css as emoCSS } from '@emotion/core'
+import shallow from 'zustand/shallow'
 import { useTheme } from 'emotion-theming'
 import { Theme } from '../../theme/types'
 import { AnimationBar } from '../../components'
-import { PopUpMenu } from '../../components/PopUpMenu'
+import { PopUpMenu, NavPanel } from '../../components'
+import { useUiStore } from '../../appState'
 import { Canvas } from './Canvas'
+import { Projects } from '../Projects'
 
-export const ExampleCourse: React.FC = () => {
+const ExampleCourse: React.FC = () => {
   const canv = useRef<HTMLCanvasElement>(null)
   const courseRef = useRef<Canvas | null>(null)
   const theme = useTheme<Theme>()
+  const setCoursePage = useUiStore(state => state.setIsCoursePage, shallow)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    setCoursePage(true)
     if (canv.current) {
       courseRef.current = new Canvas({
         canvas: canv.current,
@@ -19,43 +24,49 @@ export const ExampleCourse: React.FC = () => {
       })
     }
   }, [])
+  const content = emoCSS({
+    marginTop: 80,
+    width: '100vw',
+    // height: 'calc(100vh - 80px)',
+  })
   const mathbox = emoCSS({
-    display: 'grid',
-    gridTemplateRows: 'auto 80px',
-    marginTop: 0,
+    position: 'relative',
+    top: 80,
     width: '100vw',
     height: 'calc(100vh - 80px)',
+    // background: theme.palette.red.base,
   })
   const setCallback = useCallback(() => {}, [])
   const cancelCallback = useCallback(() => {}, [])
   return (
-    <div className="exmapleCourse">
-      <header
-        className="course__header"
-        css={emoCSS({
-          background: theme.palette.orange.base,
-          width: '100vw',
-          position: 'relative',
-          top: '0px',
-          height: '80px',
-          color: 'white',
-          backgroundColor: theme.palette.aubergine.base,
-        })}
-      >
-        Learn Babylonjs
-      </header>
-      <div className="mathbox" css={mathbox}>
-        <canvas
-          css={emoCSS`
-          width: 100%;
+    <div className="coursepage">
+      <NavPanel
+        textColor_closed={theme.palette.aubergine.base}
+        textColor_opened={theme.palette.white.base}
+      />
+      <Projects />
+      <main className="content" css={content}>
+        <div className="mathbox" css={mathbox}>
+          <canvas
+            css={emoCSS`
+          border: 1px solid ${theme.palette.yellow.dark};
+          border-radius: ${theme.radii.md};
+          margin-left: 2.5%;
+          width: 95%;
           height: 100%;
         `}
-          className="mathbox__canvas"
-          ref={canv}
-        />
-        <AnimationBar />
-        <PopUpMenu setCallback={setCallback} cancelCallback={cancelCallback} />
-      </div>
+            className="mathbox__canvas"
+            ref={canv}
+          />
+          <AnimationBar />
+          <PopUpMenu
+            setCallback={setCallback}
+            cancelCallback={cancelCallback}
+          />
+        </div>
+      </main>
     </div>
   )
 }
+
+export default ExampleCourse

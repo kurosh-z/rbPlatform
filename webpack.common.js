@@ -25,7 +25,7 @@ const _module = {
       },
     },
     {
-      test: /\.(jpg|png)$/,
+      test: /\.(jpg|png|gif|jpeg|svg)$/,
       exclude: /node_modules/,
       use: [
         {

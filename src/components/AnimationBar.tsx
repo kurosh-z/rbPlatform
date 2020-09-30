@@ -1,23 +1,28 @@
 import * as React from 'react'
 import { useRef, useCallback, useState, useEffect, useMemo } from 'react'
 import { Observer, Scene } from 'babylonjs'
+import { useSpring, a } from '@react-spring/web'
+import { sConfigs } from '../utils'
 import { css as emoCSS } from '@emotion/core'
 import { useTheme } from 'emotion-theming'
 import { Theme } from '../theme/types'
+import { brighten, alpha } from '../theme'
 import { useAnimationStore, useCanvasStore } from '../appState'
+import { AnimationState } from '../appState/types'
+
 import shallow from 'zustand/shallow'
 //@ts-ignore
 import play_icon from '../assets/icons/icon_play.svg'
 //@ts-ignore
 import pause_icon from '../assets/icons/icon_pause.svg'
 
-const selector = state => ({
+const selector = (state: AnimationState) => ({
   currentGroup: state.currentGroup,
   setCurrentGroup: state.setCurrentGroup,
   playing: state.playing,
   setPlaying: state.setPlaying,
-  playRequest: state.playRequest,
-  setPlayRequest: state.playRequest,
+  playRequested: state.playRequested,
+  setPlayRequest: state.setPlayRequest,
   groupIndex: state.groupIndex,
 })
 export const AnimationBar: React.FC = () => {
@@ -26,14 +31,25 @@ export const AnimationBar: React.FC = () => {
     setCurrentGroup,
     playing,
     setPlaying,
-    playRequest,
+    playRequested,
     setPlayRequest,
     groupIndex,
   } = useAnimationStore(selector, shallow)
+  const theme = useTheme<Theme>()
   const currentScene = useCanvasStore(state => state.currentScene)
   const [sliderPos, setSliderPos] = useState('0')
-  const sliderSyncObserver = useRef<Observer<Scene> | null>(null)
 
+  const [sliderColor, setSliderColor] = useSpring(() => ({
+    background: `linear-gradient(90deg,${theme.palette.green.base} 0%, ${alpha(
+      theme.palette.gray.lightest,
+      0.3,
+    )} 0% 100%)`,
+    config: sConfigs.FASTER,
+  }))
+
+  const [mouseDown, setMouseDown] = useState(false)
+  const [hovered, setHover] = useState(false)
+  const sliderSyncObserver = useRef<Observer<Scene> | null>(null)
   useEffect(() => {
     if (currentScene) {
       setCurrentGroup(currentScene.animationGroups[groupIndex])
@@ -55,7 +71,7 @@ export const AnimationBar: React.FC = () => {
   useEffect(() => {
     const getCurrentPosition = () => {
       if (!currentGroup) {
-        return '0'
+        return 0
       }
       let targetedAnimations = currentGroup.targetedAnimations
       if (targetedAnimations.length > 0) {
@@ -67,18 +83,30 @@ export const AnimationBar: React.FC = () => {
           if (Math.abs(currframe - currentGroup.to) < 1) {
             setPlaying(false)
             currentGroup.pause()
-            return currentGroup.to.toString()
+            return currentGroup.to
           }
-          return currframe.toString()
+          return currframe
         }
       }
-      return '0'
+      return 0
     }
     if (currentScene) {
       currentScene.onBeforeRenderObservable.remove(sliderSyncObserver.current)
+
       sliderSyncObserver.current = currentScene.onBeforeRenderObservable.add(
         () => {
-          setSliderPos(() => getCurrentPosition())
+          const currPos = getCurrentPosition()
+          const totalFrames = currentGroup ? currentGroup.to : 100
+          const posPrecentage = (getCurrentPosition() * 100) / totalFrames
+          setSliderColor(() => ({
+            background: `linear-gradient(90deg,${
+              theme.palette.green.base
+            } ${posPrecentage}%, ${alpha(
+              theme.palette.gray.lightest,
+              0.3,
+            )} ${posPrecentage}% 100%)`,
+          }))
+          setSliderPos(() => currPos.toString())
         },
       )
     }
@@ -107,56 +135,98 @@ export const AnimationBar: React.FC = () => {
     [currentGroup],
   )
 
-  const theme = useTheme<Theme>()
   const animBar = useMemo(
     () =>
       emoCSS({
+        position: 'absolute',
+        bottom: 0,
+        width: '95%',
+        marginLeft: '2.5%',
+        marginBottom: 0,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         color: 'white',
         minHeight: '30px',
-        height: '80px',
-        backgroundColor: theme.palette.aubergine.base,
-        width: '100%',
-        gridRow: 2,
+        height: '46px',
+        backgroundColor: alpha(theme.palette.white.base, 0.5),
+        borderRadius: theme.radii.sm,
+        zIndex: 100,
+
         '.animationBar__playBtn': {
           height: '70px',
           width: '70px',
           border: 'none',
           cursor: 'pointer',
+          fill: theme.palette.orange.dark,
           background: 'transparent',
+          '&:focus': {
+            outline: 'none',
+          },
         },
         '.animationBar__slider': {
           WebkitAppearance: 'none',
           cursor: 'pointer',
           width: 'calc(100% - 160px)',
+          height: 5,
           maxWidth: 1200,
           outline: 'none',
           marginLeft: 20,
           marginRight: 10,
-          background: 'transparent',
+          // background: 'transparent',
+          borderRadius: theme.radii.md,
         },
-        '.animationBar__slider::-webkit-slider-runnable-track': {
+        // '.animationBar__slider::-webkit-slider-runnable-track': {
+        //   height: 2,
+        //   webkitAppearance: 'none',
+        //   backgroundColor: 'yellow',
+        // },
+        // //mozila
+        // '.animationBar__slider::-moz-rrangeprogress': {
+        //   backgroundColor: 'yellow',
+        //   height: 2,
+        // },
+        // '.animationBar__slider::-moz-range-thumb': {
+        //   width: 20,
+        //   height: 20,
+        //   border: '2px solid white',
+        //   borderRadius: '50%',
+        //   background: theme.palette.aubergine.base,
+        // },
+        // '.animationBar__slider::-moz-range-track': {
+        //   backgroundColor: 'yelllow',
+        //   height: 2,
+        // },
+        '.animationBar__slider::::-webkit-slider-runnable-track': {
+          width: 500,
           height: 2,
-          webkitAppearance: 'none',
-          backgroundColor: 'white',
+          border: 'none',
+          borderRadius: 3,
         },
-        //mozila
-        '.animationBar__slider::-moz-rrangeprogress': {
-          backgroundColor: 'white',
-          height: 2,
-        },
-        '.animationBar__slider::-moz-range-thumb': {
-          width: 20,
-          height: 20,
-          border: '2px solid white',
-          borderRadius: '50%',
+        '.animationBar__slider::-webkit-slider-thumb': {
+          opacity: 0,
+          WebkitAppearance: 'none',
+          height: 18,
+          width: 18,
+          borderRadius: '510%',
           background: theme.palette.aubergine.base,
+          border: `2px solid ${theme.palette.white.base}`,
+          marginTop: -8,
+          cursor: 'pointer',
+          willChange: 'box-shadow background',
+          transition: 'box-shadow .3s ease-in-out , background .3s ease-in-out',
         },
-        '.animationBar__slider::-moz-range-track': {
-          backgroundColor: 'white',
-          height: 2,
+        '.clicked::-webkit-slider-thumb': {
+          boxShadow: `0 0 0 12px ${alpha(theme.palette.white.base, 0.25)}`,
+          background: brighten(theme.palette.aubergine.base, 0.9),
+          transition:
+            'box-shadow .25s ease-in-out , background .25s ease-in-out',
+        },
+        '.hovered::-webkit-slider-thumb': {
+          boxShadow: `0 0 0 8px ${alpha(theme.palette.white.base, 0.2)}`,
+          background: brighten(theme.palette.aubergine.base, 0.9),
+          transition:
+            'box-shadow .25s ease-in-out , background .25s ease-in-out',
         },
       }),
     [theme],
@@ -174,26 +244,60 @@ export const AnimationBar: React.FC = () => {
           />
         )}
         {currentGroup && !playing && (
-          <img src={play_icon} onClick={playCallback} />
+          <div
+            className="btn__icon"
+            onClick={playCallback}
+            style={{
+              width: 70,
+              height: 70,
+              backgroundColor: theme.palette.aubergine.base,
+              mask: `url(${play_icon}) no-repeat center / contain`,
+              WebkitMask: `url(${play_icon}) no-repeat center / contain`,
+            }}
+          />
         )}
         {currentGroup && playing && (
-          <img src={pause_icon} onClick={pauseCallback} />
+          <div
+            style={{
+              width: 70,
+              height: 70,
+              backgroundColor: theme.palette.aubergine.base,
+              mask: `url(${pause_icon}) no-repeat center / contain`,
+              WebkitMask: `url(${pause_icon}) no-repeat center / contain`,
+            }}
+            onClick={pauseCallback}
+          />
         )}
       </button>
-      <input
-        className="animationBar__slider"
+      <a.input
+        className={
+          mouseDown
+            ? `animationBar__slider clicked`
+            : hovered
+            ? 'animationBar__slider hovered'
+            : 'animationBar__slider'
+        }
         type="range"
+        style={sliderColor}
         min={currentGroup ? currentGroup.from : 0}
         max={currentGroup ? currentGroup.to : 100}
         step="any"
         value={sliderPos}
         onChange={() => {}}
         onInput={evt => sliderInput(evt)}
+        onMouseOver={() => {
+          setHover(true)
+        }}
+        onMouseOut={() => {
+          setHover(false)
+        }}
+        onMouseDown={() => setMouseDown(true)}
         onMouseUp={() => {
-          if (playRequest && currentGroup) {
+          if (playRequested && currentGroup) {
             currentGroup.play()
             setPlayRequest(false)
           }
+          setMouseDown(false)
         }}
       />
     </div>
