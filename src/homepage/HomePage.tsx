@@ -5,7 +5,7 @@ import { Theme } from '../theme/types'
 import MastHead from './MastHead'
 import Card from './Card'
 import { NavPanel } from '../components'
-
+import Testemonials from './Testemonials'
 // Homepage component:
 const HomePage: React.FC<{}> = () => {
   // getting theme from emotion
@@ -60,6 +60,7 @@ const HomePage: React.FC<{}> = () => {
           textPosition="end"
         ></Card>
       </section>
+      <Testemonials />
     </div>
   )
 }
