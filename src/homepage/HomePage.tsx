@@ -42,7 +42,8 @@ const HomePage: React.FC<{}> = () => {
         <Card
           title1="Imagination"
           title2="is more important than knowledge"
-          text="   “For knowledge is limited, whereas imagination embraces the entire world, stimulating progress, giving birth to evolution” ―Albert Einstein"
+          text="   “For knowledge is limited, whereas imagination embraces the entire world, stimulating progress, giving birth to evolution” ―Albert Einstein
+           During courses you'll be asked questions you don't necessarily have the knowledge to answer, but you can still form an educated guess if you use your intuition!"
           imgsrc={
             'https://drive.google.com/uc?id=1Y2iLsdxh9xdC4ioEIoSnjVyQOp4eqq1L'
           }
@@ -52,7 +53,7 @@ const HomePage: React.FC<{}> = () => {
           title2="is the end result"
           text="  of all true learning.” ―Leo Buscaglia
           You’re always going to encounter a learning curve when 
-          you learn something new — it’s one of the requirements to actually learn`ing!
+          you learn something new — it’s one of the requirements to actually learning!
            The frustrations and struggles that come with it are also a requirement.
           The learning curve doesn’t mean that you should quit — as long as you
            face the challenges and work through those frustrations, you will make progress."
