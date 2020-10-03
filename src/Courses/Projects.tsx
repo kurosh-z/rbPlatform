@@ -22,8 +22,8 @@ export const Projects: React.FC = () => {
   }, [])
   const courseList = css({
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 350px))',
-    gridAutoRows: 400,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 430px))',
+    gridAutoRows: 500,
     marginTop: 60,
     alignItems: 'center',
     justifyContent: 'center',
@@ -41,20 +41,16 @@ export const Projects: React.FC = () => {
       />
       <ProjectsLLogo />
 
-      <ul className="courselist" css={courseList}>
-        <CourseCard
-          src={pendulum}
-          title={'Triple Inverted Pendulum'}
-          zooming={130}
-        />
+      <div className="courselist" css={courseList}>
+        <CourseCard src={pendulum} title={'Triple Inverted Pendulum'} />
         <CourseCard src={manipulator} title={'Manipulator Robot'} />
         <CourseCard src={humanoid} title={'Humanoid Robot'} />
         <CourseCard
           src={hexacopter}
           title={'Hexacopter Dynamics and Control'}
         />
-        <CourseCard src={ros} title={'Manipulator in ROS'} zooming={160} />
-      </ul>
+        <CourseCard src={ros} title={'Manipulator in ROS'} />
+      </div>
     </div>
   )
 }
