@@ -2,9 +2,16 @@ import React, { useMemo } from 'react'
 import { css } from '@emotion/core'
 import { useTheme } from 'emotion-theming'
 import { Theme } from '../../theme/types'
-import { alpha } from '../../theme'
-type GotoBtnProps = { label: string; className: string }
-const GotoBtn: React.FC<GotoBtnProps> = ({ label, className }) => {
+
+type GotoBtnProps = React.HTMLAttributes<HTMLDivElement> & {
+  btn_text: string
+}
+const GotoBtn: React.FC<GotoBtnProps> = ({
+  btn_text,
+  className,
+  children,
+  ...rest
+}) => {
   const theme = useTheme<Theme>()
   const btn = useMemo(
     () =>
@@ -71,7 +78,12 @@ const GotoBtn: React.FC<GotoBtnProps> = ({ label, className }) => {
     [theme],
   )
   return (
-    <div className={'btn__wrapper ' + className} css={btn}>
+    <div
+      className={'btn__wrapper ' + className}
+      css={btn}
+      role="button"
+      {...rest}
+    >
       <a className="goto-btn">
         <span className="btn__vline line" />
         <span className="btn__hline line" />
@@ -86,7 +98,7 @@ const GotoBtn: React.FC<GotoBtnProps> = ({ label, className }) => {
             d="M17.5 14.7L3.1.5C2.4-.2 1.2-.2.5.5c-.7.7-.7 1.9 0 2.6L13.6 16 .5 28.9c-.7.7-.7 1.9 0 2.6.4.3.9.5 1.3.5s.9-.2 1.3-.5l14.4-14.2c.8-.7.8-1.9 0-2.6z"
           ></path>
         </svg>
-        <span className="btn__label">{label}</span>
+        <span className="btn__label">{btn_text}</span>
       </a>
     </div>
   )

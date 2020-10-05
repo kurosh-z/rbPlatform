@@ -1,17 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState } from 'react'
 // import pendulum from '../assets/courseThumbs/pendulum.jpeg'
 import { css } from '@emotion/core'
 import { useTheme } from 'emotion-theming'
 import { Theme } from '../theme/types'
-import { a, useSpring } from '@react-spring/web'
+import { a, useSpring, useSprings } from '@react-spring/web'
 import { GotoBtn } from '../components'
 
 type CoruseCardPros = {
   src: string
   title: string
   zooming?: number
+  description: string[]
 }
-export const CourseCard: React.FC<CoruseCardPros> = ({ src, title }) => {
+
+export const CourseCard: React.FC<CoruseCardPros> = ({
+  src,
+  title,
+  description,
+}) => {
   const theme = useTheme<Theme>()
   const shaddows = theme.createshadows(theme.palette.gray.dark)
   const coursecard = css({
@@ -79,26 +85,11 @@ export const CourseCard: React.FC<CoruseCardPros> = ({ src, title }) => {
         height: '2rem',
         width: '100%',
       },
-      '.circle': {
-        position: 'absolute',
-        bottom: -15,
-        right: -15,
-      },
-      '.circlepath': {
-        strokeDasharray: 128,
-        strokeDashoffset: 128,
-        stroke: theme.palette.orange.light,
-      },
       '&:hover': {
         '.card__text': {
           // fontSize: theme.typography.fontSizes[1],
           transform: 'scale(.9)',
           transition: 'transform .4s ease-in-out',
-        },
-        '.circlepath': {
-          transition:
-            'stroke-dashoffset .8s cubic-bezier(0.56, 0.00, 1.00, 0.90)',
-          strokeDashoffset: 0,
         },
       },
     },
@@ -124,9 +115,10 @@ export const CourseCard: React.FC<CoruseCardPros> = ({ src, title }) => {
       listStyle: '',
     },
     '.list__item': {
-      fontSize: theme.typography.fontSizes[2],
+      fontSize: '1.1rem',
       lineHeight: '2rem',
       listStyle: 'inside',
+      width: '90%',
     },
     '.details__btn': {
       alignSelf: 'flex-end',
@@ -137,15 +129,14 @@ export const CourseCard: React.FC<CoruseCardPros> = ({ src, title }) => {
     transform: 'scale(1.0)',
   }))
   const [dSprings, setdSprings] = useSpring(() => ({
+    opacity: 0 as any,
+  }))
+  const [springs, setSprings] = useSprings(description.length, () => ({
+    mleft: 0,
     opacity: 0,
   }))
-  const circleRef = useRef<SVGCircleElement | null>(null)
-  // useEffect(() => {
-  //   if (circleRef.current) {
-  //     console.log(circleRef.current.getTotalLength())
-  //   }
-  // }, [])
-  // })
+  const [clicked, setClicked] = useState(false)
+
   return (
     <>
       <a.div
@@ -161,6 +152,14 @@ export const CourseCard: React.FC<CoruseCardPros> = ({ src, title }) => {
         }}
         onClick={() => {
           setdSprings({ opacity: 1 })
+          if (!clicked) {
+            setSprings(i => ({
+              delay: i * 100,
+              from: { mleft: -300 },
+              to: { mleft: 0, opacity: 1 },
+            }))
+            setClicked(true)
+          }
         }}
       >
         <a.div className="card__content">
@@ -169,30 +168,41 @@ export const CourseCard: React.FC<CoruseCardPros> = ({ src, title }) => {
             <div className="card__textwrapper">
               <span className="card__text">{title}</span>
             </div>
-            <svg width="40" height="40" viewBox="0 0 45 45" className="circle">
-              <circle
-                className="circlepath"
-                ref={circleRef}
-                r="20"
-                cx="22"
-                cy="22"
-                strokeWidth="3"
-                fill="transparent"
-              ></circle>
-            </svg>
           </div>
           <a.div className="card__details" style={dSprings}>
             <a.ul className="details__list">
-              <a.li className="list__item">Kinematics</a.li>
-              <a.li className="list__item">Inverse Kinematics</a.li>
-              <a.li className="list__item">Differential Kinematics</a.li>
-              <a.li className="list__item">Trajectory Planning</a.li>
-              <a.li className="list__item">Motion Control</a.li>
+              {springs.map(({ mleft, opacity }, i) => {
+                return (
+                  <ALi
+                    key={i}
+                    marginLeft={mleft}
+                    opacity={opacity}
+                    text={description[i]}
+                  />
+                )
+              })}
             </a.ul>
-            <GotoBtn label={'goto Course'} className="details__btn" />
+            <GotoBtn btn_text={'goto Course'} className="details__btn" />
           </a.div>
         </a.div>
       </a.div>
     </>
   )
 }
+
+const LI: React.FC<{ text: string; marginLeft: number; opacity: number }> = ({
+  text,
+  marginLeft,
+  opacity,
+}) => {
+  return (
+    <li
+      className="list__item"
+      style={{ marginLeft: marginLeft + 'px', opacity }}
+    >
+      <span> {text} </span>
+    </li>
+  )
+}
+
+const ALi = a(LI)

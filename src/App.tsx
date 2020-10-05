@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useLayoutEffect } from 'react'
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 // import ExampleCourse from './Courses/exampleCoruse/ExampleCourse'
-import { Projects } from './Courses/Projects'
+import { CoursePage } from './Courses/CoursePage'
 import HomePage from './homepage/HomePage'
 import { useUiStore } from './appState'
 import shallow from 'zustand/shallow'
@@ -28,7 +28,7 @@ const App: React.FC<{}> = () => {
       <Router>
         <Switch>
           <Route path="/" exact component={HomePage} />
-          <Route path="/courses" component={Projects} />
+          <Route path="/courses" component={CoursePage} />
         </Switch>
       </Router>
     </Suspense>

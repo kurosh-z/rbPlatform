@@ -7,7 +7,7 @@ import { AnimationBar } from '../../components'
 import { PopUpMenu, NavPanel } from '../../components'
 import { useUiStore } from '../../appState'
 import { Canvas } from './Canvas'
-import { Projects } from '../Projects'
+import { CoursePage } from '../CoursePage'
 
 const ExampleCourse: React.FC = () => {
   const canv = useRef<HTMLCanvasElement>(null)
@@ -44,7 +44,7 @@ const ExampleCourse: React.FC = () => {
         textColor_closed={theme.palette.aubergine.base}
         textColor_opened={theme.palette.white.base}
       />
-      <Projects />
+      <CoursePage />
       <main className="content" css={content}>
         <div className="mathbox" css={mathbox}>
           <canvas
