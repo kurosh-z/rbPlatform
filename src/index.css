@@ -23,3 +23,7 @@ code {
 *:focus {
   outline: none;
 }
+
+body.disable-scroll {
+  overflow: hidden;
+}

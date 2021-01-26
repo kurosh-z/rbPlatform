@@ -43,7 +43,7 @@ const _module = {
       use: ['raw-loader', 'pug-html-loader'],
     },
     {
-      test: /\.(woff(2)?|ttf|eot|svg|blob)(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.(woff(2)?|ttf|eot|blob)(\?v=\d+\.\d+\.\d+)?$/,
       use: [
         {
           loader: 'file-loader',

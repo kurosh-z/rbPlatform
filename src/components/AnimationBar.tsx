@@ -25,7 +25,12 @@ const selector = (state: AnimationState) => ({
   setPlayRequest: state.setPlayRequest,
   groupIndex: state.groupIndex,
 })
-export const AnimationBar: React.FC = () => {
+
+type AnimBarProps={
+  playCb?: ((event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void) | undefined
+  pauseCb?: ((event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void) | undefined
+}
+export const AnimationBar: React.FC<AnimBarProps> = ({playCb, pauseCb}) => {
   const {
     currentGroup,
     setCurrentGroup,
@@ -44,7 +49,8 @@ export const AnimationBar: React.FC = () => {
       theme.palette.gray.lightest,
       0.3,
     )} 0% 100%)`,
-    config: sConfigs.FASTER,
+    config:sConfigs.stiff,
+    // immediate: true,
   }))
 
   const [mouseDown, setMouseDown] = useState(false)
@@ -56,14 +62,19 @@ export const AnimationBar: React.FC = () => {
     }
   }, [currentScene, groupIndex])
 
-  const pauseCallback = useCallback(() => {
+  const pauseCallback = useCallback((ev) => {
     if (!currentGroup) return
+    if(pauseCb) pauseCb(ev)
+    document.body.classList.remove('disable-scroll')
     currentGroup.pause()
     setPlaying(false)
   }, [currentGroup])
 
-  const playCallback = useCallback(() => {
+  const playCallback = useCallback((ev) => {
+    window.scrollTo(0,10)
     if (!currentGroup) return
+    if(playCb) playCb(ev)
+    document.body.classList.add('disable-scroll')
     currentGroup.play()
     setPlaying(true)
   }, [currentGroup])
@@ -92,12 +103,12 @@ export const AnimationBar: React.FC = () => {
     }
     if (currentScene) {
       currentScene.onBeforeRenderObservable.remove(sliderSyncObserver.current)
-
+      
       sliderSyncObserver.current = currentScene.onBeforeRenderObservable.add(
         () => {
           const currPos = getCurrentPosition()
           const totalFrames = currentGroup ? currentGroup.to : 100
-          const posPrecentage = (getCurrentPosition() * 100) / totalFrames
+          const posPrecentage = (currPos * 100) / totalFrames
           setSliderColor(() => ({
             background: `linear-gradient(90deg,${
               theme.palette.green.base
@@ -105,6 +116,7 @@ export const AnimationBar: React.FC = () => {
               theme.palette.gray.lightest,
               0.3,
             )} ${posPrecentage}% 100%)`,
+            immediate: true,
           }))
           setSliderPos(() => currPos.toString())
         },
@@ -197,15 +209,15 @@ export const AnimationBar: React.FC = () => {
         //   backgroundColor: 'yelllow',
         //   height: 2,
         // },
-        '.animationBar__slider::::-webkit-slider-runnable-track': {
+        '.animationBar__slider::-webkit-slider-runnable-track': {
           width: 500,
-          height: 2,
           border: 'none',
           borderRadius: 3,
+          WebkitAppearance: 'none',
         },
         '.animationBar__slider::-webkit-slider-thumb': {
-          opacity: 0,
-          WebkitAppearance: 'none',
+          opacity:0,
+          display:'none',
           height: 18,
           width: 18,
           borderRadius: '510%',
@@ -216,18 +228,22 @@ export const AnimationBar: React.FC = () => {
           willChange: 'box-shadow background',
           transition: 'box-shadow .3s ease-in-out , background .3s ease-in-out',
         },
-        '.clicked::-webkit-slider-thumb': {
-          boxShadow: `0 0 0 12px ${alpha(theme.palette.white.base, 0.25)}`,
-          background: brighten(theme.palette.aubergine.base, 0.9),
-          transition:
-            'box-shadow .25s ease-in-out , background .25s ease-in-out',
-        },
-        '.hovered::-webkit-slider-thumb': {
-          boxShadow: `0 0 0 8px ${alpha(theme.palette.white.base, 0.2)}`,
-          background: brighten(theme.palette.aubergine.base, 0.9),
-          transition:
-            'box-shadow .25s ease-in-out , background .25s ease-in-out',
-        },
+        
+        '.animationBar__slider::-moz-range-thumb':{
+          opacity:0
+        }
+        // '.clicked::-webkit-slider-thumb': {
+        //   boxShadow: `0 0 0 12px ${alpha(theme.palette.white.base, 0.25)}`,
+        //   background: brighten(theme.palette.aubergine.base, 0.9),
+        //   transition:
+        //     'box-shadow .25s ease-in-out , background .25s ease-in-out',
+        // },
+        // '.hovered::-webkit-slider-thumb': {
+        //   boxShadow: `0 0 0 8px ${alpha(theme.palette.white.base, 0.2)}`,
+        //   background: brighten(theme.palette.aubergine.base, 0.9),
+        //   transition:
+        //     'box-shadow .25s ease-in-out , background .25s ease-in-out',
+        // },
       }),
     [theme],
   )

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { a, useSpring } from '@react-spring/web'
 import shallow from 'zustand/shallow'
 import { css as emoCSS } from '@emotion/core'
@@ -30,7 +30,8 @@ function useNavBackground({
   const [{ navBackColor }, setNavBackColor] = useSpring<{
     navBackColor: string
   }>(() => ({
-    navBackColor: alpha(theme.palette.aubergine.base, 0),
+    // navBackColor: alpha(theme.palette.aubergine.base, 0),
+    navBackColor:'transparent',
     config: {
       mass: 1,
       friction: 60,
@@ -38,36 +39,42 @@ function useNavBackground({
     },
   }))
 
-  if (background_color !== 'transparent') {
-    const closed = navState === 'closed'
-    const closing = navState === 'progress' && navToggle === 'close'
-
-    {
-      // if it's closed or closing we do the animation
-      if (closed || closing) {
-        setNavBackColor({
-          navBackColor: scrolled
-            ? alpha(background_color, 0.95)
-            : alpha(background_color, 0),
-        })
+ 
+    if (background_color !== 'transparent') {
+      const closed = navState === 'closed'
+      const closing = navState === 'progress' && navToggle === 'close'
+  
+      {
+        // if it's closed or closing we do the animation
+        if (closed || closing) {
+          setNavBackColor({
+            navBackColor: scrolled
+              ? alpha(background_color, 0.95)
+              : alpha(background_color, 0),
+          })
+        }
+        //else if it's openning we do the animation to change the value stored in navBackColor but we return the end value!
+        else {
+          setNavBackColor({
+            navBackColor: alpha(background_color, 0),
+          })
+          return alpha(background_color, 0)
+        }
       }
-      //else if it's openning we do the animation to change the value stored in navBackColor but we return the end value!
-      else {
-        setNavBackColor({
-          navBackColor: alpha(background_color, 0),
-        })
-        return alpha(background_color, 0)
-      }
+    } else if(background_color === 'transparent'){
+      setNavBackColor({
+        navBackColor:'transparent'
+      })
     }
-  } else {
-    // TODO: if transparent it should be replaced with currBackgroundcolor of the page
-    setNavBackColor({
-      navBackColor: scrolled
-        ? alpha(theme.palette.aubergine.dark, 0.95)
-        : alpha(theme.palette.aubergine.dark, 0),
-    })
-  }
-
+    else
+    {
+      setNavBackColor({
+        navBackColor: scrolled
+          ? alpha(theme.palette.aubergine.dark, 0.95)
+          : alpha(theme.palette.aubergine.dark, 0),
+      })
+    }
+ 
   return navBackColor
 }
 

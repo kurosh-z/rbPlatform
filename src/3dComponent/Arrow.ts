@@ -1,6 +1,13 @@
 import * as BABYLON from 'babylonjs'
-import { Vector3, TransformNode, Color3, Scene } from 'babylonjs'
+import {
+  Vector3,
+  TransformNode,
+  Color3,
+  Scene,
+  AnimationGroup,
+} from 'babylonjs'
 import { Point } from './point'
+import { TimeLine } from './utils'
 import { rotationQuaternionJToV2, hex2Color3 } from './utils'
 
 export type ArrowConfigs = {
@@ -24,6 +31,7 @@ export class Arrow {
   _zeroPoint!: Point
   pointForSmallVectors: boolean
   _zeroActiv = false
+  private _userAnimGroup?: BABYLON.AnimationGroup
 
   constructor({
     vector,
@@ -174,5 +182,23 @@ export class Arrow {
       mesh.dispose()
     }
     this._material.dispose()
+  }
+
+  get userAnimGroup() {
+    if (this._userAnimGroup) {
+      return this._userAnimGroup
+    }
+    this._userAnimGroup = new AnimationGroup('userAnimGroup', this.scene)
+    return this._userAnimGroup
+  }
+  animTo(to: Vector3) {
+    const t = new TimeLine({ fps: 60, animationGroup: this.userAnimGroup })
+    t.add({
+      target: this as Arrow,
+      to: { vec: to },
+      duration: 0.5,
+      name: 'vecUserAnim',
+    })
+    this.userAnimGroup.start()
   }
 }
